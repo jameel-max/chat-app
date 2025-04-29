@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>الدردشة</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .message {
+      background: white;
+      padding: 0.7rem;
+      margin-bottom: 0.5rem;
+      border-radius: 0.6rem;
+      box-shadow: 0 0 5px rgba(0,0,0,0.05);
+    }
+
+    .message .sender {
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    .message .time {
+      color: #888;
+      font-size: 0.8rem;
+    }
+
+    form {
+      display: flex;
+      padding: 1rem;
+      background-color: #fff;
+      border-top: 1px solid #ddd;
+    }
+
+    input[type=\"text\"] {
+      flex: 1;
+      padding: 0.7rem;
+      border: 1px solid #ccc;
+      border-radius: 0.5rem;
+      margin-right: 0.5rem;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 0.7rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+    }
+
+    .logout {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: #dc3545;
+      color: white;
+      padding: 0.4rem 0.8rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    أهلاً {{ username }}
+    <a href="/logout" class="logout">تسجيل خروج</a>
+  </header>
+
+  <div class="chat-box">
+    {% for message in messages %}
+      <div class="message">
+        <div class="sender">{{ message.sender }}</div>
+        <div class="content">{{ message.content }}</div>
+        <div class="time">{{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <form method="POST" action="/send">
+    <input type="text" name="message" placeholder="اكتب رسالتك..." required />
+    <button type="submit">إرسال</button>
+  </form>
+</body>
+</html>
