@@ -1,108 +1,106 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>الدردشة</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+    <meta charset="UTF-8">
+    <title>الدردشة مع {{ username }}</title>
+    <style>
+        * {
+            font-family: sans-serif;
+        }
+        body {
+            background: #f9f9f9;
+            padding: 20px; direction: rtl;
+            background-image: linear-gradient(-40deg, #ff9e6a, #ff9e6a, #ffd4ad);
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+        .messages {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ffedde;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin-bottom: 10px;
+            color: #f9f9f9;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 25px 15px;
+        }
+        .message strong {
+            color: #007bff;
+        }
 
-    header {
-      background-color: #007bff;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-      font-size: 1.3rem;
-    }
+        #chat-form {
+            position: fixed;
+            bottom: 30px;
+        }
 
-    .chat-box {
-      flex: 1;
-      padding: 1rem;
-      overflow-y: auto;
-    }
+        input[type="text"],::placeholder {
+            word-wrap: break-word;
+            color: #f9f9f9;
+        }
 
-    .message {
-      background: white;
-      padding: 0.7rem;
-      margin-bottom: 0.5rem;
-      border-radius: 0.6rem;
-      box-shadow: 0 0 5px rgba(0,0,0,0.05);
-    }
+        input[type="text"], button[type="submit"] {
+            padding: 15px;
+            background: #007bff;
+            backdrop-filter: blur(10px);
+            outline: none;
+            border: #1e1e1e solid 1px;
+            border-radius: 400px;
+            cursor: auto;
+            margin-left: 5px;
+        }
 
-    .message .sender {
-      font-weight: bold;
-      color: #007bff;
-    }
-
-    .message .time {
-      color: #888;
-      font-size: 0.8rem;
-    }
-
-    form {
-      display: flex;
-      padding: 1rem;
-      background-color: #fff;
-      border-top: 1px solid #ddd;
-    }
-
-    input[type=\"text\"] {
-      flex: 1;
-      padding: 0.7rem;
-      border: 1px solid #ccc;
-      border-radius: 0.5rem;
-      margin-right: 0.5rem;
-    }
-
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 0.7rem 1rem;
-      border: none;
-      border-radius: 0.5rem;
-      cursor: pointer;
-    }
-
-    .logout {
-      position: absolute;
-      top: 1rem;
-      left: 1rem;
-      background: #dc3545;
-      color: white;
-      padding: 0.4rem 0.8rem;
-      border-radius: 0.5rem;
-      text-decoration: none;
-      font-size: 0.9rem;
-    }
-  </style>
+        button[type="submit"] {
+            background-color: #007bff;
+            color: #f9f9f9;
+        }
+    </style>
 </head>
 <body>
-  <header>
-    أهلاً {{ username }}
-    <a href="/logout" class="logout">تسجيل خروج</a>
-  </header>
+    <h2>مرحبًا يا {{ username }}!</h2>
+    <div id="messages"></div>
+    <form id="chat-form">
+        <input type="text" id="message" placeholder="أدخل رسالتك هنا..." required>
+        <button type="submit">إرسال</button>
+    </form>
 
-  <div class="chat-box">
-    {% for message in messages %}
-      <div class="message">
-        <div class="sender">{{ message.sender }}</div>
-        <div class="content">{{ message.content }}</div>
-        <div class="time">{{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</div>
-      </div>
-    {% endfor %}
-  </div>
+    <script>
+        // تحميل الرسائل
+        function loadMessages() {
+            fetch('/get_messages')
+                .then(response => response.json())
+                .then(data => {
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML = '';
+                    data.messages.forEach(msg => {
+                        messagesDiv.innerHTML += `<p><strong>${msg.username}</strong>: ${msg.message}</p>`;
+                    });
+                });
+        }
 
-  <form method="POST" action="/send">
-    <input type="text" name="message" placeholder="اكتب رسالتك..." required />
-    <button type="submit">إرسال</button>
-  </form>
+        // إرسال رسالة
+        document.getElementById('chat-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const message = document.getElementById('message').value;
+            fetch('/send_message', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            }).then(() => {
+                loadMessages();  // إعادة تحميل الرسائل بعد إرسالها
+                document.getElementById('message').value = '';  // مسح الحقل
+            });
+        });
+
+        // تحميل الرسائل عند تحميل الصفحة
+        loadMessages();
+    </script>
 </body>
 </html>

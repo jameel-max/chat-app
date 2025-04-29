@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حجز موعد تصليح المركبة</title>
+    <style>
+        html {
+            direction: rtl;
+        }
+        body {
+            background-color: #181A1E;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: sans-serif;
+            padding: 30px 0;
+        }
+
+        h2 {
+            text-align: center;
+            color: #e0f0ff;
+            align-self: flex-start;
+            justify-self: flex-start;
+            margin-bottom: 35px;
+        }
+
+        .container {
+            background-color: #1F2626;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            height: fit-content;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-size: 16px;
+            color: #e0f0ff;
+        }
+
+        input[type="text"], input[type="datetime-local"] {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #3d4b4b; /* حدود ناعمة رمادية مائلة للأخضر */
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            background-color: #2a3333; /* أفتح شوي من لون الكارد */
+            color: #f1f1f1;            /* نص أبيض فاتح */
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="datetime-local"]:focus {
+            border-color: #007bff;
+        }
+
+
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            color: rgb(11, 217, 11);
+        }
+
+        .approved {
+            color: green;
+            background-color: #e7ffe7;
+        }
+
+        .rejected {
+            color: red;
+            background-color: #ffe7e7;
+        }
+
+        .pending {
+            color: orange;
+            background-color: #fff3e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>حجز موعد تصليح المركبة</h2>
+
+        <!-- تحقق من إذا كان المستخدم مسجل دخوله -->
+        {% if 'username' in session %}
+        <form id="appointment-form">
+            <label for="name">اسمك:</label>
+            <input type="text" id="name" value="{{ session['username'] }}" required readonly>
+        
+            <label for="car_type">نوع السيارة:</label>
+            <input type="text" id="car_type" required>
+        
+            <label for="appointment_time">وقت الموعد:</label>
+            <input type="datetime-local" id="appointment_time" required>
+        
+            <button type="submit">احجز</button>
+        </form>
+        
+        <div id="message" style="margin-top: 10px;"></div>
+        <a href="/status">تاكد من حالة الحجز</a>
+        {% else %}
+        <p>يرجى تسجيل الدخول أولاً لحجز الموعد.</p>
+        <a href="{{ url_for('login') }}">تسجيل الدخول</a> | <a href="{{ url_for('register') }}">إنشاء حساب</a>
+        {% endif %}
+    </div>
+
+
+    <script>
+        // إرسال الطلب لحجز الموعد
+        document.getElementById("appointment-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById("name").value;
+            const car_type = document.getElementById("car_type").value;
+            const appointment_time = document.getElementById("appointment_time").value;
+
+            fetch("/book_appointment", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: name,
+                    car_type: car_type,
+                    appointment_time: appointment_time,
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("message").textContent = data.message;
+            })
+            .catch(error => {
+                document.getElementById("message").textContent = "حدث خطأ أثناء الحجز.";
+            });
+        });
+    </script>
+
+</body>
+</html>

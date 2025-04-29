@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="20">
+    <title>لوحة تحكم الكراج</title>
+    <style>
+        html {
+            direction: rtl;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            padding: 20px;
+            background-color: #181A1E;
+            color: #e0f0ff;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1F2626;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+
+        th {
+            background-color: #2196F3;
+        }
+
+        select,
+        button {
+            padding: 6px 10px;
+            margin: 2px;
+        }
+
+        button {
+            background-color: #2196F3;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0b7dda;
+        }
+
+        .delete-button {
+            background-color: #f44336;
+        }
+
+        .delete-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .btn-danger {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 0px;
+        }
+
+        .btn-danger:hover {
+            background-color: rgb(170, 0, 0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>لوحة تحكم الكراج</h1>
+    <form id="admin-form">
+        <table>
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>نوع السيارة</th>
+                    <th>الوقت المطلوب</th>
+                    <th>حالة الحجز</th>
+                    <th>التصديق</th>
+                    <th>حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for appointment in appointments %}
+                <tr>
+                    <td>{{ appointment[1] }}</td>
+                    <td>{{ appointment[2] }}</td>
+                    <td>{{ appointment[3] }}</td>
+                    <td>{{ appointment[4] }}</td>
+                    <td>
+                        <select name="status" class="status-select">
+                            <option value="approved">موافق</option>
+                            <option value="rejected">مرفوض</option>
+                        </select>
+                        <input type="hidden" name="appointment_id" value="{{ appointment[0] }}">
+                        <button type="button" class="submit-button">تحديث</button>
+                    </td>
+                    <td>
+                        <button type="button" class="delete-button"
+                            onclick="deleteAppointment({{ appointment[0] }})">حذف</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
+    <form method="POST" action="{{ url_for('delete_all_data') }}">
+        <button type="submit" class="btn btn-danger">حذف جميع البيانات</button>
+    </form>
+
+    <script>
+        document.querySelectorAll('.submit-button').forEach(button => {
+            button.addEventListener('click', function () {
+                const row = this.closest('tr');
+                const appointment_id = row.querySelector('input[name="appointment_id"]').value;
+                const status = row.querySelector('.status-select').value;
+
+                fetch('/admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        appointment_id: appointment_id,
+                        status: status
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('تم تحديث الحالة بنجاح');
+                            row.querySelector('td:nth-child(4)').textContent = status === 'approved' ? 'موافق' : 'مرفوض';
+                        } else {
+                            alert('فشل في التحديث');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('حدث خطأ أثناء التحديث');
+                    });
+            });
+        });
+
+        // حذف الموعد
+        function deleteAppointment(appointmentId) {
+            if (confirm("هل أنت متأكد من أنك تريد حذف هذا الحجز؟")) {
+                fetch('/delete_appointment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ appointment_id: appointmentId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('تم حذف الحجز بنجاح');
+                            location.reload();  // تحديث الصفحة بعد الحذف
+                        } else {
+                            alert('فشل في الحذف');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('حدث خطأ أثناء الحذف');
+                    });
+            }
+        }
+    </script>
+</body>
+
+</html>
